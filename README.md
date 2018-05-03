@@ -4,7 +4,7 @@ Thiago Alexandre Domingues de Souza
 # Apache Spark
 Apache Spark is a high performance cluster computing platform originally developed at UC Berkeley AMPLab in 2009. The researchers realized that MapReduce programs were inefficient for iterative algorithms, which reuse intermediate results between computations, because it saves operations in disk instead of memory. As result of that, they proposed a structure called Resilient Distributed Dataset (RDD) to perform in-memory computations on large clusters [(1)](#references).
 
-Each RDDs represents a collection of immutable objects, which are split into multiple partitions that may be distributed and processed among different cluster nodes. RDDs are usually created from a provided dataset or another RDD. After that, there are two operations on RDDs: transformations and actions.
+Each RDD represents a collection of immutable objects, which are split into multiple partitions that may be distributed and processed among different cluster nodes. RDDs are usually created from a provided dataset or another RDD. After that, there are two operations on RDDs: transformations and actions [(2)](#references).
 
 - **[transformations](#transformations):** lazy operations (nothing is executed until an action operation is performed) that return a new RDD from an existing RDD. Transformations include: *map, flatMap, filter, distinct, sample, union, intersection, subtract, cartesian,* etc.
 - **[actions](#actions):** operations have immediate execution and returns data. Actions include: *collect, reduce, first, count, countByValue, take, top,* etc.
@@ -14,17 +14,30 @@ Before diving further into Spark actual operations, it's important to understand
 - **Narrow dependencies:** each partition of the parent RDD is used by at most one partition of the child RDD. No shuffling is needed for these operations, making them faster. Functions: *map, flatMap, union, sample,* etc.
 - **Wide dependencies:** child partitions may come from multiple parent partitions. Shuffling the data over the network make them slower. Functions: *reduceByKey, intersection, groupByKey, cartesian,* etc.
 
-![RDD dependencies (1)](/img/spark_dependencies.png "Figure 1: RDD dependencies (1)")
+<p align="center">
+<img src="https://github.com/thiago-a-souza/Spark/blob/master/img/spark_dependencies.png"  height="40%" width="40%"> <br>
+Figure 1: RDD dependencies <a href="https://github.com/thiago-a-souza/Spark/blob/master/README.md#references">(1)</a> </p> 
+</p>
+
+
+
 
 When a Spark program finds an action it creates a Directed Acyclic Graph (DAG) of stages,  optimizing the execution flow and determining tasks that each executor should run - that way it can recover from node failures. Each stage contains as many narrow dependencies as possible to reduce shuffling, shown in Figure 2. 
 
-
-![Spark stages (1)](/img/spark_stages.png "Figure 2: Spark stages (1)")
-
+<p align="center">
+<img src="https://github.com/thiago-a-souza/Spark/blob/master/img/spark_stages.png"  height="40%" width="40%"> <br>
+Figure 2: Spark stages <a href="https://github.com/thiago-a-souza/Spark/blob/master/README.md#references">(1)</a> </p> 
+</p>
 
 The execution of a Spark application is illustrated in Figure 3. When a *SparkContext* is executed, the cluster manager (e.g. YARN, Mesos, etc) starts the executors on the work nodes of the cluster. Each node has one or more executors. After that, when it finds an action, it creates a job consisting of stages. Stages are divided into tasks, which are the smallest units in the Spark hierarchy, and run on a single executor. Resources allocation (i.e. number of executors, cores and memory per executor) can be configured at the application level.
 
-![Spark execution (3)](/img/spark_execution.png "Figure 3: Spark execution (3)")
+
+<p align="center">
+<img src="https://github.com/thiago-a-souza/Spark/blob/master/img/spark_execution.png"  height="40%" width="40%"> <br>
+Figure 2: Spark execution <a href="https://github.com/thiago-a-souza/Spark/blob/master/README.md#references">(3)</a> </p> 
+</p>
+
+
 
 ## Creating RDDs
 Apache Spark was written in Scala, but it also supports Java, Python and R. Scala for Spark has been largely adopted as result of its high performance and simplicity, reducing boiler-plate code often found in Java.
@@ -78,7 +91,7 @@ scala> a.collect()
 res1: Array[Int] = Array(2, 3, 4, 5, 6)
 ```
 
-* **flatMap:** similar to map, but each input can be mapped to zero or more output items, so it may return a different number of elements - useful to discard or add data. 
+* **flatMap:** similar to *map*, but each input can be mapped to zero or more output items, so it may return a different number of elements - useful to discard or add data. 
 ```scala
 scala> val a = List("aaa bbb ccc", "ddd", "eee")
 scala> a.map(x => x.split(" "))
@@ -205,7 +218,7 @@ res18: Array[(Int, (Int, Option[Int]))] = Array((1,(2,None)), (3,(4,Some(9))))
 
 
 ## Actions
-* **reduce:** unlike reduceByKey, the reduce function is an action, so it returns a value. It reduces the elements of the RDD using the provided commutative and associative function. **Remark:** this is not similar to the MapReduce function, which receives the data aggregated and sorted.
+* **reduce:** unlike *reduceByKey*, the *reduce* function is an action, so it returns a value. It reduces the elements of the RDD using the provided commutative and associative function. **Remark:** this is not similar to the MapReduce function, which receives the data aggregated and sorted.
 
 ```scala
 scala> val a = sc.parallelize(List(1, 2, 3))
@@ -285,7 +298,7 @@ Spark SQL supports a wide variety of data sources (e.g. CSV, JSON, JDBC, Parquet
 
 
 
-- **toDF:** converting RDD to DataFrame
+- **toDF:** converting RDD to *DataFrame*
 ```scala
 scala> import spark.implicits._
 scala> case class Person ( name : String,  age : Int )
@@ -299,7 +312,7 @@ df: org.apache.spark.sql.DataFrame = [name: string, age: int]
 
 - **createDataFrame:**
 ```scala
-scala> val inputRDD = sc.textFile("file:///home/hadoop/person.txt")
+scala> val inputRDD = sc.textFile("file:///path/to/file.txt")
 scala> val personRDD = inputRDD.map(x => x.split(",")).map(x => Person(x(0), x(1).toInt))
 scala> val df = spark.createDataFrame(rdd)
 df: org.apache.spark.sql.DataFrame = [name: string, age: int]
@@ -311,7 +324,7 @@ scala> val df = spark.createDataFrame(rowRDD, schema)
 df: org.apache.spark.sql.DataFrame = [Name: string, Age: int]
 ```
 
-- **CSV:** if the header is available in the input file it can be enabled to capture the column names. Unless the *inferSchema* is enabled, the default column type is string. In addition to that, the schema can be provided programmatically.
+- **CSV:** if the header is available in the input file it can be enabled to capture the column names. Unless the *inferSchema* is enabled, the default column type is *String*. In addition to that, the schema can be provided programmatically.
 
 ```scala
 scala> val df = spark.read.option("header", "true").csv("/path/to/file.csv")
@@ -322,7 +335,7 @@ df: org.apache.spark.sql.DataFrame = [name: string, age: int]
 
 // specifying the schema programmatically
 scala> val schema = StructType(List(StructField("Name", StringType, true), StructField("Age", IntegerType, true)))
-scala> val df = spark.read.schema(schema).csv("file:///home/hadoop/person.txt")
+scala> val df = spark.read.schema(schema).csv("file:///path/to/file.txt")
 df: org.apache.spark.sql.DataFrame = [Name: string, Age: int]
 
 ```
@@ -343,7 +356,7 @@ df: org.apache.spark.sql.DataFrame = [name: string, age: int]
 
 
 ## Creating Datasets
-Datasets can be created from Dataframes using the function *as[T]*, where *T* is either a case class or a tuple, or the function *toDS()* after importing the implicits package. In addition to that, it's also possible to create datasets from collections using the function *createDataset*.
+Datasets can be created from Dataframes using the function *as[T]*, where *T* is either a case class or a tuple, or the function *toDS()* after importing the *implicits* package. In addition to that, it's also possible to create datasets from collections using the function *createDataset*.
 
 ```scala
 scala> case class Person ( name : String,  age : Int )
@@ -363,7 +376,7 @@ ds: org.apache.spark.sql.Dataset[(String, Int)] = [_1: string, _2: int]
 ```
 
 ## Working with Dataframes
-Most Dataframe operations take a Column or String to refer to some attribute. There are three alternatives to work with columns:
+Most Dataframe operations take a Column or a *String* to refer to some attribute. There are three alternatives to work with columns:
 
 **1. Using $-notation (requires importing implicits)**
 ```
@@ -399,10 +412,10 @@ scala> empDF.filter("age > 20").show()
 
 
 ### Dataframe transformations
-Dataframe/Dataset transformations are also lazily evaluated, but return a Dataframe instead of an RDD.
+*Dataframe/Dataset* transformations are also lazily evaluated, but return a *Dataframe* instead of an RDD.
 
 
-* **select:** returns a new Dataframe with the columns provided
+* **select:** returns a new *Dataframe* with the columns provided
 ```
 scala> empDF.select("name", "country").show(2)
 +---------+-------+
@@ -413,7 +426,7 @@ scala> empDF.select("name", "country").show(2)
 +---------+-------+
 ```
 
-* **filter:** returns a new Dataframe with rows that passed the test condition
+* **filter:** returns a new *Dataframe* with rows that passed the test condition
 ```
 scala> empDF.filter($"country" === "brazil").show()
 +---------+-------+---+------+
@@ -424,7 +437,7 @@ scala> empDF.filter($"country" === "brazil").show()
 +---------+-------+---+------+
 ```
 
-* **distinct:** returns a new Dataframe with distinct rows
+* **distinct:** returns a new *Dataframe* with distinct rows
 ```
 scala> empDF.select("country").distinct().show()
 +-------+
@@ -435,7 +448,7 @@ scala> empDF.select("country").distinct().show()
 +-------+
 ```
 
-* **groupBy:** groups the Dataframe using the columns provided
+* **groupBy:** groups the *Dataframe* using the columns provided
 ```
 scala> empDF.groupBy("country").count().orderBy($"count" desc).show()
 +-------+-----+                                                                 
@@ -454,13 +467,13 @@ scala> empDF.groupBy("country").sum("salary").orderBy("sum(salary)").show()
 +-------+-----------+
 ```
 
-* **union, intersect:** returns a new Dataframe after applying the set operation
+* **union, intersect:** returns a new *Dataframe* after applying the set operation
 ```
 scala>  empDF.union(anotherDF)
 scala>  empDF.intersect(anotherDF)
 ```
 
-* **joins:** RDD provides functions for each join type (e.g. join, leftOuterJoin, rightOuterJoin, etc), but Dataframe provides a single function *join* and take a string parameter to specify the join type. Available join types: *inner, cross, outer, full, full_outer, left, left_outer, right, right_outer, left_semi and left_anti*.
+* **joins:** RDD provides functions for each join type (e.g. *join, leftOuterJoin, rightOuterJoin,* etc), but Dataframe provides a single function *join* and take a string parameter to specify the join type. Available join types: *inner, cross, outer, full, full_outer, left, left_outer, right, right_outer, left_semi and left_anti*.
 ```
 scala> val empDF = spark.read.option("header", "true").option("inferSchema", "true").csv("file:///path/to/employee.csv")
 scala> val deptDF = spark.read.option("header", "true").option("inferSchema", "true").csv(""file:///path/to/departments.csv")
@@ -489,7 +502,7 @@ scala> empDF.join(deptDF, empDF("deptId") === deptDF("deptId"), "left_outer").se
 
 ### Dataframe actions
 
-* **printSchema:** displays the Dataframe schema in a tree format
+* **printSchema:** displays the *Dataframe* schema in a tree format
 ```
 scala> empDF.printSchema
 root
@@ -500,7 +513,7 @@ root
  |-- deptId: integer (nullable = true)
  ```
  
- * **show:** unless specified, displays the top 20 Dataframe rows in a tabular format
+ * **show:** unless specified, displays the top 20 *Dataframe* rows in a tabular format
  ```
 scala> empDF.show()
 +---------+-------+---+------+------+
@@ -514,18 +527,18 @@ scala> empDF.show()
 +---------+-------+---+------+------+
 ```
 
- * **take:** returns an Array with the first N elements in the Dataframe
+ * **take:** returns an *Array* with the first N elements in the *Dataframe*
  ```scala
  scala> empDF.take(2)
 res26: Array[org.apache.spark.sql.Row] = Array([john,usa,30,1000,1], [francisco,brazil,32,2000,2])
 ```
  
- * **count:** returns the number of elements in the Dataframe
+ * **count:** returns the number of elements in the *Dataframe*
 ```scala
 scala> empDF.count()
 res27: Long = 5
 ```
- * **collect:**  returns an Array with all elements in the Dataframe
+ * **collect:**  returns an *Array* with all elements in the *Dataframe*
  ```scala
  scala> empDF.collect()
 res28: Array[org.apache.spark.sql.Row] = Array([john,usa,30,1000,1], [francisco,brazil,32,2000,2], [george,usa,45,1500,3], [james,usa,45,4000,null], [pedro,brazil,32,1000,2])
@@ -533,7 +546,7 @@ res28: Array[org.apache.spark.sql.Row] = Array([john,usa,30,1000,1], [francisco,
 
 
 ### Running SQLs
-Spark SQL allows creating queries against a temporary table and returns a new Dataframe, making it easier to create complex queries. Temporary tables can be assigned to the current session, using the function *createOrReplaceTempView*, or shared among all sessions while the application is active, using the function *createGlobalTempView*.
+Spark SQL allows creating queries against a temporary view and returns a new *Dataframe*, making it easier to create complex queries. Temporary views can be assigned to the current session, using the function *createOrReplaceTempView*, or shared among all sessions while the application is active, using the function *createGlobalTempView*.
 
 ```
 scala> empDF.createOrReplaceTempView("employees")
@@ -573,7 +586,7 @@ scala> spark.sql("select a.name, b.deptName from employees a left outer join dep
 ```
 
 ### User Defined Functions (UDFs)
-User Defined Functions (UDFs) allow programmers to create customized functions not available in the Spark SQL API. Otherwise it would be required to convert the Dataframe to an RDD and then modify the data. It's important to highlight that UDFs should avoided whenever possible as Catalyst may not optimize the function created.
+User Defined Functions (UDFs) allow programmers to create customized functions not available in the Spark SQL API. Otherwise it would be required to convert the *Dataframe* to an RDD and then modify the data. It's important to highlight that UDFs should avoided whenever possible as Catalyst may not optimize the function created.
 
 
 ```
