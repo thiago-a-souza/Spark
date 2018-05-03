@@ -2,21 +2,21 @@
 Thiago Alexandre Domingues de Souza
 
 # Apache Spark
-Apache Spark is a high performance cluster computing platform originally developed at UC Berkeley AMPLab in 2009. The researchers realized that MapReduce programs were inefficient for iterative algorithms, which reuse intermediate results between computations, because it saves operations in disk instead of memory. As result of that, they proposed a structure called Resilient Distributed Dataset (RDD) to perform in-memory computations on large clusters [(1)](#references).
+Apache Spark is a high performance cluster computing platform originally developed at UC Berkeley AMPLab in 2009. The researchers realized that MapReduce programs were inefficient for iterative algorithms, which reuse intermediate results between computations, because it saves operations in disk instead of memory. As result of that, they proposed a structure called Resilient Distributed Dataset (*RDD*) to perform in-memory computations on large clusters [(1)](#references).
 
-Each RDD represents a collection of immutable objects, which are split into multiple partitions that may be distributed and processed among different cluster nodes. RDDs are usually created from a provided dataset or another RDD. After that, there are two operations on RDDs: transformations and actions [(2)](#references).
+Each *RDD* represents a collection of immutable objects, which are split into multiple partitions that may be distributed and processed among different cluster nodes. RDDs are usually created from a provided dataset or another *RDD*. After that, there are two operations on RDDs: transformations and actions [(2)](#references).
 
-- **[transformations](#transformations):** lazy operations (nothing is executed until an action operation is performed) that return a new RDD from an existing RDD. Transformations include: *map, flatMap, filter, distinct, sample, union, intersection, subtract, cartesian,* etc.
+- **[transformations](#transformations):** lazy operations (nothing is executed until an action operation is performed) that return a new *RDD* from an existing *RDD*. Transformations include: *map, flatMap, filter, distinct, sample, union, intersection, subtract, cartesian,* etc.
 - **[actions](#actions):** operations have immediate execution and returns data. Actions include: *collect, reduce, first, count, countByValue, take, top,* etc.
 
 Before diving further into Spark actual operations, it's important to understand how they work. Transformations dependencies  between RDDs can be divided into two categories: narrow and wide, as illustrated in Figure 1. In Scala, wide transformations return a *ShuffleDependency* for the *dependency* property.
 
-- **Narrow dependencies:** each partition of the parent RDD is used by at most one partition of the child RDD. No shuffling is needed for these operations, making them faster. Functions: *map, flatMap, union, sample,* etc.
+- **Narrow dependencies:** each partition of the parent *RDD* is used by at most one partition of the child *RDD*. No shuffling is needed for these operations, making them faster. Functions: *map, flatMap, union, sample,* etc.
 - **Wide dependencies:** child partitions may come from multiple parent partitions. Shuffling the data over the network make them slower. Functions: *reduceByKey, intersection, groupByKey, cartesian,* etc.
 
 <p align="center">
 <img src="https://github.com/thiago-a-souza/Spark/blob/master/img/spark_dependencies.png"  height="40%" width="40%"> <br>
-Figure 1: RDD dependencies <a href="https://github.com/thiago-a-souza/Spark/blob/master/README.md#references">(1)</a> </p> 
+Figure 1: <i>RDD</i> dependencies <a href="https://github.com/thiago-a-souza/Spark/blob/master/README.md#references">(1)</a> </p> 
 </p>
 
 
@@ -40,7 +40,7 @@ Figure 3: Spark execution <a href="https://github.com/thiago-a-souza/Spark/blob/
 ## Creating RDDs
 Apache Spark was written in Scala, but it also supports Java, Python and R. Scala for Spark has been largely adopted as result of its high performance and simplicity, reducing boiler-plate code often found in Java.
 
-Creating an RDD requires a reference to *SparkContext*. This object represents the front door to Spark, allowing your application to communicate with your cluster manager (e.g. standalone, YARN, Mesos, etc). Spark properties can be hard-coded for each application using a *SparkConf* object that's passed to the *SparkContext*. Alternatively, *spark-submit* accepts runtime  parameters and also reads configurations from *spark-defaults.conf*. However, configurations specified in *SparkConf* take a higher precedence [(4)](#references).
+Creating an *RDD* requires a reference to *SparkContext*. This object represents the front door to Spark, allowing your application to communicate with your cluster manager (e.g. standalone, YARN, Mesos, etc). Spark properties can be hard-coded for each application using a *SparkConf* object that's passed to the *SparkContext*. Alternatively, *spark-submit* accepts runtime  parameters and also reads configurations from *spark-defaults.conf*. However, configurations specified in *SparkConf* take a higher precedence [(4)](#references).
 
 Hard-coded *SparkContext*  in Scala using the number of threads corresponding to the number of machine cores:
 
@@ -57,7 +57,7 @@ val sc = new SparkContext("local[*]", "YourAppName")
 ``` 
 
 
-Once a *SparkContext* is available, there are three alternatives to create an RDD: from an external dataset, using the *parallelize* method or from an existing RDD.
+Once a *SparkContext* is available, there are three alternatives to create an *RDD*: from an external dataset, using the *parallelize* method or from an existing *RDD*.
 
 ```scala
 val rdd1 = sc.textFile("file:///your/path/here/your_file.txt")
@@ -81,7 +81,7 @@ scala> for (word <- freq)
 
 ## Transformations 
 
-* **map:** applies a function to every element in the RDD and returns a new RDD with the same number of elements
+* **map:** applies a function to every element in the *RDD* and returns a new *RDD* with the same number of elements
 ```scala
 scala> val a = sc.parallelize(List(1, 2, 3, 4, 5))
 scala> a.map(x => x + 1)
@@ -100,7 +100,7 @@ res3: List[String] = List(aaa, bbb, ccc, ddd, eee)
 ```
 
 
-* **filter:** returns a new RDD containing only elements that satisfy the conditional logic provided
+* **filter:** returns a new *RDD* containing only elements that satisfy the conditional logic provided
 ```scala
 scala> val nbrs = sc.parallelize(1 to 10)
 scala> val even = nbrs.filter(_ % 2 == 0)
@@ -108,7 +108,7 @@ scala> even.collect()
 res4: Array[Int] = Array(2, 4, 6, 8, 10)
 ```
 
-* **distinct:** returns a new RDD with distinct elements
+* **distinct:** returns a new *RDD* with distinct elements
 ```scala
 scala> val a = sc.parallelize(List(1, 2, 2, 3, 1, 4))
 scala> val b = a.distinct()
@@ -116,7 +116,7 @@ scala> b.collect()
 res5: Array[Int] = Array(4, 2, 1, 3)                                           
 ```
 
-* **union, intersection, subtract, cartesian:** returns a new RDD after applying the specified set operation
+* **union, intersection, subtract, cartesian:** returns a new *RDD* after applying the specified set operation
 ```scala
 scala> val a = sc.parallelize(List(1, 2, 3))
 scala> val b = sc.parallelize(List(3, 4, 5))
@@ -159,7 +159,7 @@ res11: Array[(Int, (Int, Int))] = Array((2,(16,160)), (1,(18,180)))
 * **groupByKey:** group values with the same key. This is a time-consuming function and should be avoided. It shuffles and then aggregates the data - *reduceByKey* is faster because it aggregates and then shuffle the data. Other alternatives to prefer over *groupByKey*: *combineByKey* and *foldByKey*.
 
 
-* **mapValues:** applies the provided function to the RDD values, preserving the keys.
+* **mapValues:** applies the provided function to the *RDD* values, preserving the keys.
 ```scala
 scala> val a = sc.parallelize(List((1, 10), (2, 7), (1, 8), (2, 9)))
 scala> val b = a.mapValues(x => x + 1)
@@ -172,7 +172,7 @@ scala> d.collect()
 res13: Array[(Int, (Int, Int))] = Array((1,(11,110)), (2,(8,80)), (1,(9,90)), (2,(10,100)))
 ```
 
-* **keys:** returns an RDD with the keys from a given RDD
+* **keys:** returns an *RDD* with the keys from a given *RDD*
 ```scala
 scala> val a = sc.parallelize(List((1,10),(2,7),(5,8)))
 scala> val b = a.keys
@@ -180,7 +180,7 @@ scala> b.collect()
 res14: Array[Int] = Array(1, 2, 5)
 ```
 
-* **values:** returns an RDD with the values from a given RDD
+* **values:** returns an *RDD* with the values from a given *RDD*
 ```scala
 scala> val a = sc.parallelize(List((1,10),(2,7),(5,8)))
 scala> val b = a.values
@@ -188,7 +188,7 @@ scala> b.collect
 res15: Array[Int] = Array(10, 7, 8)
 ```
 
-* **sortByKey:** returns an RDD sorted by key
+* **sortByKey:** returns an *RDD* sorted by key
 ```scala
 scala> val a = sc.parallelize(List((5, 2), (3, 7), (1, 8), (2, 9)))
 scala> val b = a.sortByKey()
@@ -196,7 +196,7 @@ scala> b.collect()
 res16: Array[(Int, Int)] = Array((1,8), (2,9), (3,7), (5,2))
 ```
 
-* **join:** returns an RDD from an inner join between two RDDs
+* **join:** returns an *RDD* from an inner join between two RDDs
 ```scala
 scala> val a = sc.parallelize(List((5, 2), (3, 7), (1, 8), (2, 9)))
 scala> val b = sc.parallelize(List((3,9)))
@@ -205,7 +205,7 @@ scala> c.collect()
 res17: Array[(Int, (Int, Int))] = Array((3,(7,9)))
 ```
 
-* **leftOuterJoin:** returns an RDD from a left outer inner join between two RDDs
+* **leftOuterJoin:** returns an *RDD* from a left outer inner join between two RDDs
 ```scala
 scala> val a = sc.parallelize(List((1,2), (3,4)))
 scala> val b = sc.parallelize(List((3,9)))
@@ -216,7 +216,7 @@ res18: Array[(Int, (Int, Option[Int]))] = Array((1,(2,None)), (3,(4,Some(9))))
 
 
 ## Actions
-* **reduce:** unlike *reduceByKey*, the *reduce* function is an action, so it returns a value. It reduces the elements of the RDD using the provided commutative and associative function. **Remark:** this is not similar to the MapReduce function, which receives the data aggregated and sorted.
+* **reduce:** unlike *reduceByKey*, the *reduce* function is an action, so it returns a value. It reduces the elements of the *RDD* using the provided commutative and associative function. **Remark:** this is not similar to the MapReduce function, which receives the data aggregated and sorted.
 
 ```scala
 scala> val a = sc.parallelize(List(1, 2, 3))
@@ -227,35 +227,35 @@ scala> a.reduce((x,y) => Math.min(x, y))
 res20: Int = 1
 ```
 
-* **collect:** returns an array with all elements from the RDD
+* **collect:** returns an array with all elements from the *RDD*
 ```scala
 scala> val a = sc.parallelize(List(1, 2, 3, 3))
 scala> a.collect
 res21: Array[Int] = Array(1, 2, 3, 3)
 ```
 
-* **count:** returns the number of items in the RDD
+* **count:** returns the number of items in the *RDD*
 ```scala
 scala> val a = sc.parallelize(List(1, 2, 3, 3))
 scala> a.count
 res22: Long = 4
 ```
 
-* **countByValue:** returns a map of *(value, count)* from the RDD
+* **countByValue:** returns a map of *(value, count)* from the *RDD*
 ```scala
 scala> val a = sc.parallelize(Array(1,2,2,3,3,3,3))
 scala> a.countByValue
 res23: scala.collection.Map[Int,Long] = Map(2 -> 2, 1 -> 1, 3 -> 4)
 ```
 
-* **take:** returns an array with the first N elements from the RDD
+* **take:** returns an array with the first N elements from the *RDD*
 ```scala
 scala> val a = sc.parallelize(List(3, 1, 5, 7))
 scala> a.take(2)
 res24: Array[Int] = Array(3, 1)
 ```
 
-* **top:** returns the top k values from the RDD
+* **top:** returns the top k values from the *RDD*
 ```scala
 scala> val b = sc.parallelize(List(6, 9, 4, 7, 5, 8))
 scala> b.top(2)
@@ -265,7 +265,7 @@ res25: Array[Int] = Array(9, 8)
 
 
 ## Persistence
-Spark recomputes an RDD and its dependencies every time an action is executed. This behavior can impact iterative algorithms, which reuse the same data multiple times. Preventing this effect can be achieved using persistence functions, that can save the RDD in memory, disk or both. Levels available: *MEMORY_ONLY* (default), *MEMORY_ONLY_SER*, *MEMORY_AND_DISK*, *MEMORY_AND_DISK_SER* and *DISK_ONLY*.
+Spark recomputes an *RDD* and its dependencies every time an action is executed. This behavior can impact iterative algorithms, which reuse the same data multiple times. Preventing this effect can be achieved using persistence functions, that can save the *RDD* in memory, disk or both. Levels available: *MEMORY_ONLY* (default), *MEMORY_ONLY_SER*, *MEMORY_AND_DISK*, *MEMORY_AND_DISK_SER* and *DISK_ONLY*.
 
 ```scala
 scala> rdd.persist(org.apache.spark.storage.StorageLevel.MEMORY_AND_DISK)
@@ -292,11 +292,11 @@ val spark = SparkSession
 ## Creating Dataframes
 Dataframes have a schema information about the columns stored - column names, data types and if nulls are allowed. Spark has three alternatives to provide a schema to a Dataframe: inferring from metadata (using information from Scala case classes, JSON or JDBC), inferring from data (if data doesn't provide a schema) and specified programmatically.
 
-Spark SQL supports a wide variety of data sources (e.g. CSV, JSON, JDBC, Parquet, etc). As result of that, there are several options to create Dataframes. The most common solution is creating an RDD with a Scala case class and then convert to a Dataframe using the function *toDF* or *createDataFrame*. However, Scala case classes are limited to 22 fields. In that case,  Dataframes can be specified programmatically using the *createDataFrame* function.
+Spark SQL supports a wide variety of data sources (e.g. CSV, JSON, JDBC, Parquet, etc). As result of that, there are several options to create Dataframes. The most common solution is creating an *RDD* with a Scala case class and then convert to a Dataframe using the function *toDF* or *createDataFrame*. However, Scala case classes are limited to 22 fields. In that case,  Dataframes can be specified programmatically using the *createDataFrame* function.
 
 
 
-- **toDF:** converting RDD to *DataFrame*
+- **toDF:** converting *RDD* to *DataFrame*
 ```scala
 scala> import spark.implicits._
 scala> case class Person ( name : String,  age : Int )
@@ -410,7 +410,7 @@ scala> empDF.filter("age > 20").show()
 
 
 ### Dataframe transformations
-*Dataframe/Dataset* transformations are also lazily evaluated, but return a *Dataframe* instead of an RDD.
+*Dataframe/Dataset* transformations are also lazily evaluated, but return a *Dataframe* instead of an *RDD*.
 
 
 * **select:** returns a new *Dataframe* with the columns provided
@@ -471,7 +471,7 @@ scala>  empDF.union(anotherDF)
 scala>  empDF.intersect(anotherDF)
 ```
 
-* **joins:** RDD provides functions for each join type (e.g. *join, leftOuterJoin, rightOuterJoin,* etc), but Dataframe provides a single function *join* and take a string parameter to specify the join type. Available join types: *inner, cross, outer, full, full_outer, left, left_outer, right, right_outer, left_semi and left_anti*.
+* **joins:** *RDD* provides functions for each join type (e.g. *join, leftOuterJoin, rightOuterJoin,* etc), but Dataframe provides a single function *join* and take a string parameter to specify the join type. Available join types: *inner, cross, outer, full, full_outer, left, left_outer, right, right_outer, left_semi and left_anti*.
 ```
 scala> val empDF = spark.read.option("header", "true").option("inferSchema", "true").csv("file:///path/to/employee.csv")
 scala> val deptDF = spark.read.option("header", "true").option("inferSchema", "true").csv(""file:///path/to/departments.csv")
@@ -584,7 +584,7 @@ scala> spark.sql("select a.name, b.deptName from employees a left outer join dep
 ```
 
 ### User Defined Functions (UDFs)
-User Defined Functions (UDFs) allow programmers to create customized functions not available in the Spark SQL API. Otherwise it would be required to convert the *Dataframe* to an RDD and then modify the data. It's important to highlight that UDFs should avoided whenever possible as Catalyst may not optimize the function created.
+User Defined Functions (UDFs) allow programmers to create customized functions not available in the Spark SQL API. Otherwise it would be required to convert the *Dataframe* to an *RDD* and then modify the data. It's important to highlight that UDFs should avoided whenever possible as Catalyst may not optimize the function created.
 
 
 ```
