@@ -20,8 +20,6 @@ Figure 1: RDD dependencies <a href="https://github.com/thiago-a-souza/Spark/blob
 </p>
 
 
-
-
 When a Spark program finds an action it creates a Directed Acyclic Graph (DAG) of stages,  optimizing the execution flow and determining tasks that each executor should run - that way it can recover from node failures. Each stage contains as many narrow dependencies as possible to reduce shuffling, shown in Figure 2. 
 
 <p align="center">
@@ -34,7 +32,7 @@ The execution of a Spark application is illustrated in Figure 3. When a *SparkCo
 
 <p align="center">
 <img src="https://github.com/thiago-a-souza/Spark/blob/master/img/spark_execution.png"  height="40%" width="40%"> <br>
-Figure 2: Spark execution <a href="https://github.com/thiago-a-souza/Spark/blob/master/README.md#references">(3)</a> </p> 
+Figure 3: Spark execution <a href="https://github.com/thiago-a-souza/Spark/blob/master/README.md#references">(3)</a> </p> 
 </p>
 
 
